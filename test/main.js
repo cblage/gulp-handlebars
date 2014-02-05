@@ -51,7 +51,7 @@ describe('gulp-handlebars', function() {
       
       stream.on('error', function(err) {
         assert(err instanceof Error);
-        assert.equal(err.message, "Error: Parse error on line 1:\n" +
+        assert.equal(err.message, "Error: Parse error on line 1:\n"+
           "...syntax error: {{foo }}}\n"+
           "-----------------------^\n" +
           "Expecting 'CLOSE', got 'CLOSE_UNESCAPED'");
