@@ -5,7 +5,7 @@ var gutil = require('gulp-util');
 
 var outputTypes = ['amd', 'commonjs', 'node', 'bare'];
 
-module.exports = function (options) {
+module.exports = function(options) {
   options = extend({
     compilerOptions: {},
     wrapped: false,
@@ -16,7 +16,7 @@ module.exports = function (options) {
     throw new Error('Invalid output type: '+options.outputType);
   }
 
-  function onHandlebarsFileModified (file) {
+  function onHandlebarsFileModified(file) {
     if (file.isNull()) {
       return this.emit('data', file); // pass along
     }
