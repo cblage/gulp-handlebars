@@ -13,7 +13,7 @@ module.exports = function (options) {
   }, options);
 
   if (outputTypes.indexOf(options.outputType) === -1) {
-    throw new Error('Invalid output type: ' + options.outputType);
+    throw new Error('Invalid output type: '+options.outputType);
   }
 
   function onHandlebarsFileModified (file) {
