@@ -1,12 +1,11 @@
-var map = require('vinyl-map');
 var es = require('event-stream');
-var rename = require('gulp-rename');
 var Handlebars = require('handlebars');
 var extend = require('xtend');
+var gutil = require('gulp-util');
 
 var outputTypes = ['amd', 'commonjs', 'node', 'bare'];
 
-module.exports = function(options) {
+module.exports = function (options) {
   options = extend({
     compilerOptions: {},
     wrapped: false,
@@ -14,14 +13,27 @@ module.exports = function(options) {
   }, options);
 
   if (outputTypes.indexOf(options.outputType) === -1) {
-    throw new Error('Invalid output type: '+options.outputType);
+    throw new Error('Invalid output type: ' + options.outputType);
   }
 
-  var compileHandlebars = function(contents, path) {
-    // Perform pre-compilation
-    // This will throw if errors are encountered
-    var compiled = Handlebars.precompile(contents.toString(), options.compilerOptions);
+  function onHandlebarsFileModified (file) {
+    if (file.isNull()) {
+      return this.emit('data', file); // pass along
+    }
+    
+    if (file.isStream()) {
+      return this.emit('error', new Error("gulp-handlebars: Streaming not supported"));
+    }
 
+    var contents = file.contents.toString('utf8');
+    
+    var compiled;
+    try {
+      compiled = Handlebars.precompile(contents.toString(), options.compilerOptions);
+    } catch (err) {
+      return this.emit('error', new Error(err));
+    }
+    
     if (options.wrapped) {
       compiled = 'Handlebars.template('+compiled+')';
     }
@@ -42,16 +54,10 @@ module.exports = function(options) {
       }
     }
 
-    return compiled;
-  };
+    file.contents = new Buffer(compiled);
+    file.path = gutil.replaceExtension(file.path, ".js");
+    this.emit('data', file);
+  }
 
-  var doRename = function(dir, base, ext) {
-    // Change the extension to .js
-    return base+'.js';
-  };
-
-  return es.pipeline(
-    map(compileHandlebars),
-    rename(doRename)
-  );
+  return es.through(onHandlebarsFileModified);
 };
