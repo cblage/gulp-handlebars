@@ -1,4 +1,5 @@
 var handlebarsPlugin = require('../');
+var assert = require('assert');
 var should = require('should');
 var gutil = require('gulp-util');
 var os = require('os');
@@ -34,6 +35,32 @@ describe('gulp-handlebars', function() {
           outputType: 'cow'
         });
       }).should.throw();
+    });
+
+    it('should emit an error when compiling invalid templates', function(done) {
+      var stream = handlebarsPlugin({
+        outputType: 'bare',
+        wrapped: false
+      });
+
+      var invalidTemplate = getFixture('Invalid.hbs');
+
+      stream.on('data', function() {
+        assert.fail('no data should be emitted');
+      });
+      
+      stream.on('error', function(err) {
+        assert(err instanceof Error);
+        assert.equal(err.message, "Error: Parse error on line 1:\n" +
+          "...syntax error: {{foo }}}\n"+
+          "-----------------------^\n" +
+          "Expecting 'CLOSE', got 'CLOSE_UNESCAPED'");
+
+        done();
+      });
+
+      stream.write(invalidTemplate);
+      stream.end();
     });
 
     it('should compile unwrapped bare templates', function(done) {
